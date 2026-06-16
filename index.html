@@ -3,342 +3,325 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TDS Drone Explorer</title>
+  <title>Drone Explorer — Taz Drone Solutions</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&family=Space+Mono&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0c10;
-      --surface: #111318;
-      --border: #1e2330;
-      --accent: #00d4ff;
-      --accent2: #ff6b35;
-      --text: #e8eaf0;
-      --muted: #6b7280;
-      --panel-w: 320px;
+      --bg:       #07090f;
+      --surface:  #0e1017;
+      --border:   #1a1f2e;
+      --accent:   #c8f135;
+      --accent2:  #4a6cf7;
+      --text:     #eef0f6;
+      --muted:    #5a6070;
+      --panel-w:  340px;
     }
 
-    body {
+    html, body {
+      height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
     }
 
-    /* ── HEADER ── */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 40px;
+      padding: 0 40px;
+      height: 58px;
       border-bottom: 1px solid var(--border);
-      background: rgba(10,12,16,0.95);
-      position: sticky; top: 0; z-index: 100;
-      backdrop-filter: blur(12px);
+      position: relative;
+      z-index: 50;
     }
-    .logo {
-      font-family: 'Space Mono', monospace;
-      font-size: 1.1rem;
-      letter-spacing: 0.12em;
-      color: var(--accent);
+
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      line-height: 1;
     }
-    .logo span { color: var(--text); }
-    .subtitle {
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
+    .brand-sub {
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--muted);
+      margin-top: 3px;
     }
+    .header-right {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+    .header-right span { color: var(--accent); margin-right: 6px; }
 
-    /* ── MAIN LAYOUT ── */
     .layout {
       display: flex;
-      height: calc(100vh - 61px);
+      height: calc(100vh - 58px);
     }
 
-    /* ── CANVAS AREA ── */
-    .canvas-wrap {
+    .carousel-area {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
-      padding: 30px;
+      overflow: hidden;
     }
 
-    .instruction {
-      font-size: 0.72rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
-
-    .drone-container {
-      position: relative;
-      width: 580px;
-      max-width: 100%;
-    }
-
-    .drone-container img {
+    .drone-track {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      display: block;
-      filter: invert(1) brightness(0.85);
+      position: relative;
+      height: 380px;
+    }
+
+    .drone-card {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
+    }
+
+    .drone-card.pos-center { transform: translateX(0) scale(1); opacity: 1; z-index: 3; }
+    .drone-card.pos-left   { transform: translateX(-260px) scale(0.62); opacity: 0.35; z-index: 1; }
+    .drone-card.pos-right  { transform: translateX(260px) scale(0.62); opacity: 0.35; z-index: 1; }
+    .drone-card.pos-hidden { transform: translateX(0) scale(0.4); opacity: 0; z-index: 0; pointer-events: none; }
+
+    .drone-card:hover.pos-left,
+    .drone-card:hover.pos-right { opacity: 0.6; }
+
+    .drone-img-wrap {
+      width: 340px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drone-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: invert(1) brightness(0.9);
       pointer-events: none;
     }
+    .drone-card.pos-center .drone-img-wrap img { filter: invert(1) brightness(1); }
 
-    /* ── HOTSPOT ZONES ── */
-    .hotspot {
-      position: absolute;
-      cursor: pointer;
-      border-radius: 50%;
-      transition: all 0.25s ease;
+    .drone-placeholder {
+      width: 260px; height: 200px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+    }
+    .drone-placeholder p {
+      font-size: 0.72rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.1em;
     }
 
-    .hotspot-ring {
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      transition: all 0.3s ease;
+    .drone-label { margin-top: 16px; text-align: center; }
+    .drone-label-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      transition: color 0.3s ease;
     }
-
-    .hotspot:hover .hotspot-ring,
-    .hotspot.active .hotspot-ring {
-      border-color: var(--accent);
-      box-shadow: 0 0 18px var(--accent), 0 0 40px rgba(0,212,255,0.2);
-      animation: pulse-ring 1.4s ease-out infinite;
+    .drone-card.pos-center .drone-label-name { color: var(--accent); }
+    .drone-label-type {
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
     }
-
-    @keyframes pulse-ring {
-      0%   { transform: scale(1); opacity: 1; }
-      70%  { transform: scale(1.4); opacity: 0; }
-      100% { transform: scale(1.4); opacity: 0; }
-    }
-
-    .hotspot-dot {
-      width: 14px; height: 14px;
+    .drone-card.pos-center::after {
+      content: '';
+      display: block;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 10px var(--accent);
-      position: relative; z-index: 2;
-      transition: transform 0.2s ease;
-    }
-    .hotspot:hover .hotspot-dot,
-    .hotspot.active .hotspot-dot {
-      transform: scale(1.3);
-      background: #fff;
+      margin: 10px auto 0;
     }
 
-    /* hotspot label */
-    .hotspot-label {
-      position: absolute;
-      white-space: nowrap;
-      font-size: 0.65rem;
-      font-family: 'Space Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--accent);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
+    .nav-arrows { display: flex; gap: 12px; margin-top: 32px; }
+    .nav-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 1rem;
     }
-    .hotspot:hover .hotspot-label,
-    .hotspot.active .hotspot-label {
-      opacity: 1;
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,241,53,0.06); }
+
+    .dot-indicators { display: flex; gap: 8px; margin-top: 16px; }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
-
-    /* ── INDIVIDUAL HOTSPOT POSITIONS ── */
-    /* Center plate — body of drone */
-    #hs-center  { top: 34%; left: 40%; }
-    #hs-center .hotspot-label  { top: -22px; left: 50%; transform: translateX(-50%); }
-
-    /* CW arm — right arm */
-    #hs-cw      { top: 40%; left: 72%; }
-    #hs-cw .hotspot-label      { top: -22px; left: 16px; }
-
-    /* CCW arm — left arm */
-    #hs-ccw     { top: 40%; left: 14%; }
-    #hs-ccw .hotspot-label     { top: -22px; right: 16px; }
-
-    /* Landing skid — bottom legs */
-    #hs-skid    { top: 75%; left: 44%; }
-    #hs-skid .hotspot-label    { bottom: -22px; left: 50%; transform: translateX(-50%); }
-
-    /* Payload — top antenna area */
-    #hs-payload { top: 10%; left: 50%; }
-    #hs-payload .hotspot-label { top: -22px; left: 16px; }
-
-    /* ── GRID LINES (techy overlay) ── */
-    .grid-overlay {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-      background-size: 30px 30px;
-      pointer-events: none;
-      border-radius: 4px;
+    .dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      width: 20px;
+      border-radius: 3px;
     }
 
-    /* ── SIDE PANEL ── */
-    .panel {
+    /* SPEC PANEL */
+    .spec-panel {
       width: var(--panel-w);
       border-left: 1px solid var(--border);
       background: var(--surface);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: transform 0.35s ease;
     }
 
-    .panel-header {
-      padding: 24px 28px 18px;
+    .panel-top {
+      padding: 28px 28px 20px;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
-
     .panel-eyebrow {
-      font-size: 0.62rem;
       font-family: 'Space Mono', monospace;
-      letter-spacing: 0.22em;
+      font-size: 0.6rem;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
       color: var(--accent);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-
-    .panel-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      line-height: 1.25;
+    .panel-drone-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .panel-drone-class {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.08em;
     }
 
     .panel-body {
       flex: 1;
       overflow-y: auto;
-      padding: 24px 28px;
+      padding: 22px 28px;
     }
-
-    .panel-body::-webkit-scrollbar { width: 4px; }
-    .panel-body::-webkit-scrollbar-track { background: transparent; }
-    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .panel-body::-webkit-scrollbar { width: 3px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); }
 
     .panel-desc {
-      font-size: 0.88rem;
-      line-height: 1.7;
-      color: #b0b5c0;
+      font-size: 0.84rem;
+      line-height: 1.75;
+      color: #8890a0;
       margin-bottom: 24px;
     }
 
-    .spec-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .spec-table tr {
-      border-bottom: 1px solid var(--border);
-    }
-    .spec-table tr:last-child { border-bottom: none; }
-    .spec-table td {
-      padding: 10px 0;
-      font-size: 0.82rem;
-    }
-    .spec-table td:first-child {
+    .spec-group-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
       color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      width: 45%;
+      margin-bottom: 10px;
     }
-    .spec-table td:last-child {
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .spec-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .spec-item-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .spec-item-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
       color: var(--text);
-      font-weight: 500;
     }
 
-    .tag-list {
+    .detail-btn {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 20px;
-    }
-    .tag {
-      padding: 4px 10px;
-      background: rgba(0,212,255,0.08);
-      border: 1px solid rgba(0,212,255,0.2);
-      border-radius: 100px;
-      font-size: 0.68rem;
-      font-family: 'Space Mono', monospace;
-      letter-spacing: 0.08em;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(200,241,53,0.07);
+      border: 1px solid rgba(200,241,53,0.25);
+      border-radius: 8px;
       color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      letter-spacing: 0.04em;
     }
+    .detail-btn:hover { background: rgba(200,241,53,0.13); border-color: var(--accent); }
 
-    /* empty state */
-    .empty-state {
+    .panel-empty {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
-      gap: 12px;
+      gap: 14px;
       color: var(--muted);
+      padding: 30px;
       text-align: center;
-      padding: 20px;
     }
-    .empty-state svg { opacity: 0.3; }
-    .empty-state p {
-      font-size: 0.8rem;
-      line-height: 1.6;
-      letter-spacing: 0.04em;
-    }
+    .panel-empty p { font-size: 0.8rem; line-height: 1.6; }
 
-    /* section divider */
-    .section-label {
-      font-size: 0.62rem;
-      font-family: 'Space Mono', monospace;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-      margin-top: 20px;
-    }
+    #panelData { display: none; flex-direction: column; height: 100%; }
 
-    /* accent bar */
-    .accent-bar {
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-      margin-bottom: 20px;
-      width: 60%;
-    }
-
-    /* nav dots */
-    .nav-dots {
-      display: flex;
-      gap: 8px;
-      padding: 16px 28px;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .nav-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .nav-dot.active {
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    @media (max-width: 860px) {
+    @media (max-width: 800px) {
+      html, body { overflow: auto; }
       .layout { flex-direction: column; height: auto; }
-      .panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
-      header { padding: 14px 20px; }
-      .drone-container { width: 100%; max-width: 460px; }
-      .canvas-wrap { padding: 20px; }
+      .spec-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      header { padding: 0 20px; }
+      .drone-card.pos-left  { transform: translateX(-160px) scale(0.55); }
+      .drone-card.pos-right { transform: translateX(160px) scale(0.55); }
     }
   </style>
 </head>
@@ -346,207 +329,242 @@
 
 <header>
   <div>
-    <div class="logo">BFD<span>-X</span></div>
-    <div class="subtitle">Drone Design Explorer</div>
+    <div class="brand-name">Drone Explorer</div>
+    <div class="brand-sub">Taz Drone Solutions</div>
   </div>
-  <div class="subtitle">Interactive Assembly Map</div>
+  <div class="header-right"><span>●</span> Pilih drone untuk eksplorasi</div>
 </header>
 
 <div class="layout">
 
-  <!-- CANVAS -->
-  <div class="canvas-wrap">
-    <div class="instruction">Klik sub-assembly untuk melihat detail komponen</div>
+  <div class="carousel-area">
+    <div class="drone-track" id="droneTrack">
 
-    <div class="drone-container">
-      <div class="grid-overlay"></div>
-      <img src="assets/images/BFD-X.jpg" alt="BFD-X Drone" />
-
-      <!-- HOTSPOTS -->
-      <div class="hotspot" id="hs-center" data-id="center" title="Center Plate Assembly">
-        <div class="hotspot-ring"></div>
-        <div class="hotspot-dot"></div>
-        <div class="hotspot-label">Center Plate</div>
+      <div class="drone-card" data-index="0" id="card-0">
+        <div class="drone-img-wrap">
+          <img src="assets/images/BFD-X.jpg" alt="BFD-X"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="drone-placeholder" style="display:none">
+            <svg width="40" height="40" fill="none" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="16" stroke="#5a6070" stroke-width="1.5"/>
+              <path d="M20 8v24M8 20h24" stroke="#5a6070" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="20" cy="20" r="4" fill="#5a6070"/>
+            </svg>
+            <p>BFD-X</p>
+          </div>
+        </div>
+        <div class="drone-label">
+          <div class="drone-label-name">BFD-X</div>
+          <div class="drone-label-type">Heavy Lift Quadrotor</div>
+        </div>
       </div>
 
-      <div class="hotspot" id="hs-cw" data-id="cw" title="CW Arm Assembly">
-        <div class="hotspot-ring"></div>
-        <div class="hotspot-dot"></div>
-        <div class="hotspot-label">CW Arm</div>
+      <div class="drone-card" data-index="1" id="card-1">
+        <div class="drone-img-wrap">
+          <div class="drone-placeholder">
+            <svg width="40" height="40" fill="none" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="16" stroke="#5a6070" stroke-width="1.5"/>
+              <path d="M20 8v24M8 20h24" stroke="#5a6070" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="20" cy="20" r="4" fill="#5a6070"/>
+            </svg>
+            <p>VHAGAR</p>
+          </div>
+        </div>
+        <div class="drone-label">
+          <div class="drone-label-name">Vhagar</div>
+          <div class="drone-label-type">Fixed-Wing VTOL</div>
+        </div>
       </div>
 
-      <div class="hotspot" id="hs-ccw" data-id="ccw" title="CCW Arm Assembly">
-        <div class="hotspot-ring"></div>
-        <div class="hotspot-dot"></div>
-        <div class="hotspot-label">CCW Arm</div>
+      <div class="drone-card" data-index="2" id="card-2">
+        <div class="drone-img-wrap">
+          <div class="drone-placeholder">
+            <svg width="40" height="40" fill="none" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="16" stroke="#5a6070" stroke-width="1.5"/>
+              <path d="M20 8v24M8 20h24" stroke="#5a6070" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="20" cy="20" r="4" fill="#5a6070"/>
+            </svg>
+            <p>T40</p>
+          </div>
+        </div>
+        <div class="drone-label">
+          <div class="drone-label-name">T40</div>
+          <div class="drone-label-type">Agricultural Sprayer</div>
+        </div>
       </div>
 
-      <div class="hotspot" id="hs-skid" data-id="skid" title="Landing Skid Assembly">
-        <div class="hotspot-ring"></div>
-        <div class="hotspot-dot"></div>
-        <div class="hotspot-label">Landing Skid</div>
-      </div>
+    </div>
 
-      <div class="hotspot" id="hs-payload" data-id="payload" title="Payload System Assembly">
-        <div class="hotspot-ring"></div>
-        <div class="hotspot-dot"></div>
-        <div class="hotspot-label">Payload System</div>
+    <div class="nav-arrows">
+      <button class="nav-btn" id="btnPrev">&#8592;</button>
+      <button class="nav-btn" id="btnNext">&#8594;</button>
+    </div>
+
+    <div class="dot-indicators" id="dotIndicators">
+      <div class="dot" data-i="0"></div>
+      <div class="dot" data-i="1"></div>
+      <div class="dot" data-i="2"></div>
+    </div>
+  </div>
+
+  <div class="spec-panel">
+    <div id="panelEmpty" class="panel-empty">
+      <svg width="44" height="44" fill="none" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="20" stroke="#1a1f2e" stroke-width="1.5"/>
+        <path d="M14 22h16M22 14l8 8-8 8" stroke="#5a6070" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p>Klik salah satu drone untuk melihat spesifikasi dan detail assembly.</p>
+    </div>
+    <div id="panelData">
+      <div class="panel-top">
+        <div class="panel-eyebrow" id="pEyebrow"></div>
+        <div class="panel-drone-name" id="pName"></div>
+        <div class="panel-drone-class" id="pClass"></div>
+      </div>
+      <div class="panel-body">
+        <p class="panel-desc" id="pDesc"></p>
+        <div class="spec-group-label">Spesifikasi Utama</div>
+        <div class="spec-grid" id="pGrid"></div>
+        <a class="detail-btn" id="pDetailBtn" href="#">
+          <span>Lihat Detail Assembly</span>
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </div>
     </div>
   </div>
 
-  <!-- SIDE PANEL -->
-  <div class="panel">
-    <div class="panel-header" id="panel-header" style="display:none">
-      <div class="panel-eyebrow" id="panel-eyebrow">Sub-Assembly</div>
-      <div class="panel-title" id="panel-title">—</div>
-    </div>
-    <div class="panel-body" id="panel-body">
-      <div class="empty-state" id="empty-state">
-        <svg width="48" height="48" fill="none" viewBox="0 0 48 48">
-          <circle cx="24" cy="24" r="22" stroke="#6b7280" stroke-width="1.5"/>
-          <path d="M24 14v10M24 30v4" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <p>Pilih salah satu titik pada gambar drone untuk melihat informasi detail sub-assembly.</p>
-      </div>
-    </div>
-    <div class="nav-dots" id="nav-dots" style="display:none">
-      <div class="nav-dot" data-id="center"></div>
-      <div class="nav-dot" data-id="cw"></div>
-      <div class="nav-dot" data-id="ccw"></div>
-      <div class="nav-dot" data-id="skid"></div>
-      <div class="nav-dot" data-id="payload"></div>
-    </div>
-  </div>
 </div>
 
 <script>
-  const assemblies = {
-    center: {
-      eyebrow: "01 — Struktur Utama",
-      title: "Center Plate Assembly",
-      desc: "Komponen inti dari drone BFD-X yang berfungsi sebagai tulang punggung struktural. Center plate menghubungkan seluruh sub-assembly dan menampung sistem avionik, baterai, serta flight controller. Desain honeycomb memberikan kekuatan tinggi dengan bobot minimal.",
+  const drones = [
+    {
+      id: 'bfd-x',
+      name: 'BFD-X',
+      class: 'Heavy Lift Quadrotor',
+      eyebrow: 'Flagship Platform',
+      desc: 'Platform quadrotor heavy-lift dirancang untuk misi survei, inspeksi, dan pengiriman beban. Struktur carbon fiber dengan sistem modular memungkinkan konfigurasi payload yang fleksibel di berbagai kondisi operasional.',
       specs: [
-        ["Material", "Carbon Fiber Composite"],
-        ["Dimensi", "280 × 280 mm"],
-        ["Ketebalan", "3 mm"],
-        ["Mounting Hole", "M3 × 16 titik"],
-        ["Kapasitas Baterai", "2× LiPo 6S"],
-        ["IP Rating", "IP53"],
+        { label: 'MTOW',        value: '12 kg' },
+        { label: 'Max Payload', value: '3.5 kg' },
+        { label: 'Flight Time', value: '35 min' },
+        { label: 'Range',       value: '8 km' },
+        { label: 'Frame Size',  value: '840 mm' },
+        { label: 'IP Rating',   value: 'IP53' },
       ],
-      tags: ["Structural", "Avionics Bay", "Modular", "Carbon Fiber"]
+      detailPage: 'pages/bfd-x.html'
     },
-    cw: {
-      eyebrow: "02 — Propulsi CW",
-      title: "CW Arm Assembly",
-      desc: "Lengan motor untuk propeler arah Clockwise (searah jarum jam). Arm ini dipasang secara diametral dan dirancang untuk menyerap vibrasi motor. Termasuk ESC mount, kabel management channel, dan motor bracket quick-release.",
+    {
+      id: 'vhagar',
+      name: 'Vhagar',
+      class: 'Fixed-Wing VTOL',
+      eyebrow: 'Long Endurance',
+      desc: 'Platform VTOL hybrid yang menggabungkan kemampuan take-off vertikal dengan efisiensi terbang sayap tetap. Ideal untuk misi pemetaan area luas dan pengintaian jarak jauh dengan waktu terbang yang panjang.',
       specs: [
-        ["Rotasi Motor", "Clockwise (CW)"],
-        ["Panjang Arm", "420 mm"],
-        ["Diameter Tube", "25 mm"],
-        ["Material", "Carbon Fiber Tube"],
-        ["Motor Mount", "M3 × 4 baut"],
-        ["Max Thrust", "4.2 kg per motor"],
+        { label: 'MTOW',        value: '— kg' },
+        { label: 'Max Payload', value: '— kg' },
+        { label: 'Flight Time', value: '— min' },
+        { label: 'Range',       value: '— km' },
+        { label: 'Wingspan',    value: '— mm' },
+        { label: 'IP Rating',   value: '—' },
       ],
-      tags: ["CW Rotation", "ESC Mount", "Quick-Release", "Vibration Damped"]
+      detailPage: 'pages/vhagar.html'
     },
-    ccw: {
-      eyebrow: "03 — Propulsi CCW",
-      title: "CCW Arm Assembly",
-      desc: "Lengan motor untuk propeler arah Counter-Clockwise (berlawanan jarum jam). Berpasangan dengan CW arm untuk menciptakan keseimbangan torsi pada frame. Sistem mounting identik dengan CW arm untuk kemudahan penggantian di lapangan.",
+    {
+      id: 't40',
+      name: 'T40',
+      class: 'Agricultural Sprayer',
+      eyebrow: 'Agri Platform',
+      desc: 'Drone pertanian bertenaga tinggi untuk penyemprotan presisi di lahan pertanian. Sistem pompa dan nozzle yang terintegrasi memastikan distribusi cairan merata pada berbagai jenis tanaman.',
       specs: [
-        ["Rotasi Motor", "Counter-CW (CCW)"],
-        ["Panjang Arm", "420 mm"],
-        ["Diameter Tube", "25 mm"],
-        ["Material", "Carbon Fiber Tube"],
-        ["Motor Mount", "M3 × 4 baut"],
-        ["Max Thrust", "4.2 kg per motor"],
+        { label: 'MTOW',          value: '— kg' },
+        { label: 'Tank Capacity', value: '— L' },
+        { label: 'Spray Width',   value: '— m' },
+        { label: 'Coverage',      value: '— ha/h' },
+        { label: 'Frame Size',    value: '— mm' },
+        { label: 'IP Rating',     value: '—' },
       ],
-      tags: ["CCW Rotation", "ESC Mount", "Quick-Release", "Torque Balance"]
-    },
-    skid: {
-      eyebrow: "04 — Sistem Pendaratan",
-      title: "Landing Skid Assembly",
-      desc: "Sistem landing gear berbentuk skid yang dirancang untuk pendaratan di berbagai medan. Struktur tubular dengan cross-brace memberikan stabilitas lateral. Ujung skid dilengkapi rubber pad untuk meredam benturan saat touchdown.",
-      specs: [
-        ["Konfigurasi", "4-point skid"],
-        ["Tinggi Ground Clearance", "180 mm"],
-        ["Material", "Aluminum 6061-T6"],
-        ["Diameter Tube", "16 mm"],
-        ["Max Landing Weight", "12 kg"],
-        ["Rubber Pad", "Shore 60A"],
-      ],
-      tags: ["Aluminum", "All-Terrain", "Shock Absorb", "Removable"]
-    },
-    payload: {
-      eyebrow: "05 — Sistem Misi",
-      title: "Payload System Assembly",
-      desc: "Sistem mounting payload yang fleksibel untuk berbagai misi. Tersedia interface untuk kamera, sensor, maupun delivery system. Dilengkapi vibration isolator untuk menjaga kualitas data sensor. Koneksi listrik dan data melalui connector terpusat di center plate.",
-      specs: [
-        ["Max Payload Weight", "3.5 kg"],
-        ["Interface", "Picatinny + M5 thread"],
-        ["Power Output", "12V / 5V / USB-C"],
-        ["Data Port", "CAN / UART / I2C"],
-        ["Gimbal Ready", "3-axis support"],
-        ["Quick Release", "Tool-free"],
-      ],
-      tags: ["Modular", "Gimbal Ready", "Multi-sensor", "Quick-Release"]
+      detailPage: 'pages/t40.html'
     }
-  };
+  ];
 
-  let activeId = null;
+  let centerIndex = 0;
 
-  function showPanel(id) {
-    const data = assemblies[id];
-    if (!data) return;
+  const cards = [
+    document.getElementById('card-0'),
+    document.getElementById('card-1'),
+    document.getElementById('card-2'),
+  ];
+  const dots = document.querySelectorAll('.dot');
 
-    activeId = id;
-
-    // update hotspots
-    document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active'));
-    document.querySelector(`[data-id="${id}"].hotspot`).classList.add('active');
-
-    // update nav dots
-    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
-    document.querySelector(`.nav-dot[data-id="${id}"]`).classList.add('active');
-
-    // show header
-    const header = document.getElementById('panel-header');
-    header.style.display = 'block';
-    document.getElementById('panel-eyebrow').textContent = data.eyebrow;
-    document.getElementById('panel-title').textContent = data.title;
-
-    // show nav
-    document.getElementById('nav-dots').style.display = 'flex';
-
-    // hide empty state
-    document.getElementById('empty-state').style.display = 'none';
-
-    // build body
-    const body = document.getElementById('panel-body');
-    body.innerHTML = `
-      <div class="accent-bar"></div>
-      <p class="panel-desc">${data.desc}</p>
-      <div class="section-label">Spesifikasi Teknis</div>
-      <table class="spec-table">
-        ${data.specs.map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
-      </table>
-      <div class="section-label">Tags</div>
-      <div class="tag-list">
-        ${data.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-      </div>
-    `;
+  function getPos(cardIndex) {
+    const diff = (cardIndex - centerIndex + 3) % 3;
+    if (diff === 0) return 'pos-center';
+    if (diff === 1) return 'pos-right';
+    return 'pos-left';
   }
 
-  // Hotspot click handlers
-  document.querySelectorAll('.hotspot').forEach(hs => {
-    hs.addEventListener('click', () => showPanel(hs.dataset.id));
+  function renderCarousel() {
+    cards.forEach((card, i) => {
+      card.className = 'drone-card ' + getPos(i);
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === centerIndex));
+  }
+
+  function showPanel(droneIndex) {
+    const d = drones[droneIndex];
+    document.getElementById('panelEmpty').style.display = 'none';
+    const pd = document.getElementById('panelData');
+    pd.style.display = 'flex';
+
+    document.getElementById('pEyebrow').textContent = d.eyebrow;
+    document.getElementById('pName').textContent = d.name;
+    document.getElementById('pClass').textContent = d.class;
+    document.getElementById('pDesc').textContent = d.desc;
+    document.getElementById('pDetailBtn').href = d.detailPage;
+    document.getElementById('pGrid').innerHTML = d.specs.map(s => `
+      <div class="spec-item">
+        <div class="spec-item-label">${s.label}</div>
+        <div class="spec-item-value">${s.value}</div>
+      </div>
+    `).join('');
+  }
+
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => {
+      centerIndex = i;
+      renderCarousel();
+      showPanel(i);
+    });
   });
 
-  // Nav dot click handlers
-  document.querySelectorAll('.nav-dot').forEach(dot => {
-    dot.addEventListener('click', () => showPanel(dot.dataset.id));
+  dots.forEach(d => {
+    d.addEventListener('click', () => {
+      centerIndex = parseInt(d.dataset.i);
+      renderCarousel();
+      showPanel(centerIndex);
+    });
   });
+
+  document.getElementById('btnPrev').addEventListener('click', () => {
+    centerIndex = (centerIndex - 1 + 3) % 3;
+    renderCarousel();
+    showPanel(centerIndex);
+  });
+  document.getElementById('btnNext').addEventListener('click', () => {
+    centerIndex = (centerIndex + 1) % 3;
+    renderCarousel();
+    showPanel(centerIndex);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  document.getElementById('btnPrev').click();
+    if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
+  });
+
+  renderCarousel();
+  showPanel(0);
 </script>
 </body>
 </html>
